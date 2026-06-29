@@ -82,9 +82,7 @@ io.of(/^\/\d+$/).on("connection", (socket) => {
   const password = auth.password || "";
   const username = auth.username || `Player${uid}`;
 
-  console.log(
-    `[Room ${roomId}] 🔌 Connection: uid=${uid}, version=${version}`
-  );
+  console.log(`[Room ${roomId}] 🔌 Connection: uid=${uid}, version=${version}`);
 
   // ----- Ensure room state exists -----
   if (!rooms.has(roomId)) {
@@ -157,7 +155,7 @@ io.of(/^\/\d+$/).on("connection", (socket) => {
     status: room.gameStarted ? 2 : 0,
     players: Array.from(room.players.values()).map((p) => ({
       id: parseInt(p.id),
-      name: p.name,
+      username: p.name,
       status: p.status,
       mods: p.mods,
       team: p.team,
@@ -170,7 +168,7 @@ io.of(/^\/\d+$/).on("connection", (socket) => {
   // ----- Broadcast join -----
   const joinPayload = {
     id: parseInt(uid),
-    name: player.name,
+    username: player.name,
     status: player.status,
     mods: player.mods,
     team: player.team,
@@ -180,7 +178,7 @@ io.of(/^\/\d+$/).on("connection", (socket) => {
   socket.nsp.emit("onRoomPlayerJoin", joinPayload);
 
   console.log(
-    `[Room ${roomId}] 👤 Player ${uid} (${player.name}) joined. Total: ${room.players.size}`
+    `[Room ${roomId}] 👤 Player ${uid} (${player.name}) joined. Total: ${room.players.size}`,
   );
 
   // ============================================================
@@ -199,9 +197,7 @@ io.of(/^\/\d+$/).on("connection", (socket) => {
   // ---------- playerKicked ----------
   const onPlayerKicked = (targetUidStr) => {
     const targetUid =
-      typeof targetUidStr === "string"
-        ? targetUidStr
-        : String(targetUidStr);
+      typeof targetUidStr === "string" ? targetUidStr : String(targetUidStr);
     console.log(`[Room ${roomId}] 👢 kick ${targetUid} by ${uid}`);
     broadcastRoom("playerKicked", targetUid);
 
@@ -268,7 +264,10 @@ io.of(/^\/\d+$/).on("connection", (socket) => {
     room.winCondition = cond;
     console.log(`[Room ${roomId}] 🏆 winCondition → ${cond} by ${uid}`);
     broadcastRoom("winConditionChanged", cond);
-    broadcastRoom("onRoomSettingsChange", { type: "winCondition", condition: cond });
+    broadcastRoom("onRoomSettingsChange", {
+      type: "winCondition",
+      condition: cond,
+    });
   };
 
   const onRoomNameChanged = (name) => {
@@ -292,14 +291,16 @@ io.of(/^\/\d+$/).on("connection", (socket) => {
   const onRoomPasswordChanged = (pw) => {
     room.password = pw;
     room.isLocked = !!pw;
-    console.log(`[Room ${roomId}] 🔒 password ${pw ? "set" : "removed"} by ${uid}`);
+    console.log(
+      `[Room ${roomId}] 🔒 password ${pw ? "set" : "removed"} by ${uid}`,
+    );
   };
 
   // ---------- score ----------
   const onScoreSubmission = (data) => {
     room.scores.push({ uid, ...data });
     console.log(
-      `[Room ${roomId}] 📊 score by ${uid} (${room.scores.length}/${room.players.size})`
+      `[Room ${roomId}] 📊 score by ${uid} (${room.scores.length}/${room.players.size})`,
     );
 
     if (room.scores.length >= room.players.size) {
@@ -320,7 +321,7 @@ io.of(/^\/\d+$/).on("connection", (socket) => {
   const onBeatmapLoadComplete = () => {
     room.loadedPlayers.add(uid);
     console.log(
-      `[Room ${roomId}] ✅ loaded by ${uid} (${room.loadedPlayers.size}/${room.players.size})`
+      `[Room ${roomId}] ✅ loaded by ${uid} (${room.loadedPlayers.size}/${room.players.size})`,
     );
     broadcastRoom("onPlayerLoaded", parseInt(uid));
 
@@ -334,7 +335,7 @@ io.of(/^\/\d+$/).on("connection", (socket) => {
   const onSkipRequested = () => {
     room.skipPlayers.add(uid);
     console.log(
-      `[Room ${roomId}] ⏭️ skip by ${uid} (${room.skipPlayers.size}/${room.players.size})`
+      `[Room ${roomId}] ⏭️ skip by ${uid} (${room.skipPlayers.size}/${room.players.size})`,
     );
     broadcastRoom("onPlayerSkip", parseInt(uid));
 
