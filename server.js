@@ -188,8 +188,24 @@ io.of(/^\/\d+$/).on("connection", (socket) => {
   // ---------- beatmapChanged ----------
   const onBeatmapChanged = (data) => {
     const beatmap = typeof data === "string" ? JSON.parse(data) : data;
+    // Ensure beatmapSetId is preserved (sent from client) and not corrupted
+    if (beatmap.beatmapSetId !== undefined && beatmap.beatmapSetId !== null) {
+      beatmap.beatmapSetId =
+        typeof beatmap.beatmapSetId === "number"
+          ? beatmap.beatmapSetId
+          : parseInt(beatmap.beatmapSetId, 10);
+    } else {
+      // Explicitly set to null when not provided or explicitly cleared
+      beatmap.beatmapSetId = beatmap.beatmapSetId === null ? null : undefined;
+    }
+    // Normalize NaN to null
+    if (beatmap.beatmapSetId !== undefined && isNaN(beatmap.beatmapSetId)) {
+      beatmap.beatmapSetId = null;
+    }
     room.beatmap = beatmap;
-    console.log(`[Room ${roomId}] 📋 beatmapChanged by ${uid}`);
+    console.log(
+      `[Room ${roomId}] 📋 beatmapChanged by ${uid} (beatmapSetId: ${beatmap.beatmapSetId})`,
+    );
     broadcastRoom("beatmapChanged", beatmap);
     broadcastRoom("onRoomBeatmapChange", beatmap);
   };
